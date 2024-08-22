@@ -19,7 +19,7 @@ The client wants to:
     - view count
     - like count
     - comment count
-2. Provide recommendations on content she can upload on her channel.
+2. Provide recommendations on content she can upload on their channel.
 
 Metrics
 1. Dividing the View count by the subscribers count of the channel
@@ -39,5 +39,6 @@ We need data on the top Nigerian Food Content Creators in 2024 that includes the
 - like count
 - comment count
 
+
 - Where is the data coming from? 
-The data is scraped from youtube using both Selenium and Youtube API. The names of the youtubers chosen were scrapped from this [website](https://videos.feedspot.com/nigeria_food_youtube_channels/)
+The data is scraped from youtube using the Youtube API.
