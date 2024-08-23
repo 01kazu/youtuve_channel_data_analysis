@@ -13,7 +13,7 @@ import csv
 import dill as pickle
 import os
 from dotenv import load_dotenv
-import time
+from datetime import datetime
 
 
 load_dotenv()
@@ -25,7 +25,7 @@ SBR_WEBDRIVER = os.getenv('SBR_WEBDRIVER')
 
 
 
-def get_youtube_video_details(video_id):
+def get_youtube_video_details(video_id: str) -> list[str|datetime|int]:
     api_service_name = "youtube"
     api_version = "v3"
     youtube = googleapiclient.discovery.build(
@@ -57,13 +57,12 @@ def get_youtube_video_details(video_id):
     return [video_title, video_duration, date_released, view_count, like_count, comment_count]
 
 
-def get_youtube_video_id(link):
+def get_youtube_video_id(link: str) -> str:
     link_parts = link.split('=')
     return link_parts[-1]
     
 
-def get_all_youtubers_videos_links(youtuber_link) :
-    scroll_pause_time = 0.5
+def get_all_youtubers_videos_links(youtuber_link: str) -> list[str]:
     print('Connecting...')  
     sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome')  
     with Remote(sbr_connection, options=ChromeOptions()) as driver:  
@@ -104,21 +103,21 @@ def get_all_youtubers_videos_links(youtuber_link) :
         # store the links object in a pickle to prevent retrieving the data continuously
 
 
-def save_data(data, filename, file_path='') -> None:
+def save_data(data :list[str], filename :str, file_path: str = '' ) -> None:
     if not file_path.endswith('/'):
         file_path = file_path + '/'
     with open(f'{file_path}{filename}', 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def load_data(filename, file_path=''):
+def load_data(filename: str, file_path: str ='') -> list[str]:
     if not file_path.endswith('/'):
         file_path = file_path + '/'
     with open(f'{file_path}{filename}', 'rb') as handle:
         return pickle.load(handle)
     
     
-def remove_names_extracted(txt_file_path, name_file_path):
+def remove_names_extracted(txt_file_path: str, name_file_path: str) -> None:
     # 
     files_to_remove = []
     for file in os.listdir(name_file_path):
@@ -133,7 +132,7 @@ def remove_names_extracted(txt_file_path, name_file_path):
                 f.write(line)
 
 
-def youtube_video_details_csv(youtuber_link, channel_name=''):
+def youtube_video_details_csv(youtuber_link: str, channel_name: str ='') -> None:
     if not channel_name:
         link_parts = youtuber_link.split('/')
         channel_name = [link_part for link_part in link_parts if link_part.startswith('@')]
@@ -162,7 +161,7 @@ def youtube_video_details_csv(youtuber_link, channel_name=''):
             writer.writerow(details)
 
 
-def get_youtuber_channel_details(youtuber_link):
+def get_youtuber_channel_details(youtuber_link: str) -> list[str]:
     print('Connecting...')  
     sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome')  
     with Remote(sbr_connection, options=ChromeOptions()) as driver:  

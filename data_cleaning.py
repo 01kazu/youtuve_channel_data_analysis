@@ -35,7 +35,7 @@ def get_digits(string):
 #     return video_dict
 
 
-def data_cleaning(filepath):
+def data_cleaning(filepath: str) -> pd.DataFrame:
     df = pd.read_csv(filepath, parse_dates=['date_released_utc'])
     # Extract video duration from string
     df['video_duration_H'] = df['video_duration'].apply(

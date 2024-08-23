@@ -6,20 +6,15 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from datetime import datetime
+from dotenv import load_dotenv
+import os
 
-
-AUTH = 'brd-customer-hl_3e97fbd9-zone-scraping_browser1:8tgkdiwsv0y6'  
-SBR_WEBDRIVER = f'https://{AUTH}@zproxy.lum-superproxy.io:9515' 
 
 def get_local_driver():
     # Get the chromedriver version that corresponds with your google chrome browser version.
     service = Service(executable_path="chromedriver.exe")
     driver = webdriver.Chrome(service=service)
     return driver
-
-def get_remote_driver():
-    pass
 
 
 def get_top_20_nigeria_food_content_creators() -> None:
