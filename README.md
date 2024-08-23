@@ -22,14 +22,14 @@ The client wants to:
 2. Provide recommendations on content she can upload on their channel.
 
 Metrics
-1. Dividing the View count by the subscribers count of the channel
-2. Dividing the Like count by the subscribers count of the channel
+1. views_per_subscribers: Dividing the View count by the subscribers count of the channel
+2. likes_per_subscribers: Dividing the Like count by the subscribers count of the channel
 
 # Data source 
 
 - What data is needed to achieve our objective?
 
-We need data on the top Nigerian Food Content Creators in 2024 that includes their 
+We need data on the top Nigerian Food Content Creators in 2024 that includes their:
 - channel name
 - total subscribers
 - video title
@@ -41,4 +41,4 @@ We need data on the top Nigerian Food Content Creators in 2024 that includes the
 
 
 - Where is the data coming from? 
-The data is scraped from youtube using the Youtube API.
+The data is scraped from youtube using the Selenium, BrightData and Youtube API.
