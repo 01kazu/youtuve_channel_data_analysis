@@ -1,3 +1,4 @@
+from types import new_class
 import googleapiclient.discovery
 from selenium.webdriver import Remote, ChromeOptions  
 from selenium.webdriver.chromium.remote_connection import ChromiumRemoteConnection  
@@ -12,22 +13,25 @@ import csv
 import dill as pickle
 import os
 from dotenv import load_dotenv
+import time
 
 
 load_dotenv()
-# Google Api
+# Youtube Api
 API_KEY = os.getenv('API_KEY')  
 # BRIGHT DATA (Scraping browser [access parameters])
 AUTH = os.getenv('AUTH') 
 SBR_WEBDRIVER = os.getenv('SBR_WEBDRIVER')
 
+
+
 def get_youtube_video_details(video_id):
-    print('Getting youtuber data with the google api')
     api_service_name = "youtube"
     api_version = "v3"
     youtube = googleapiclient.discovery.build(
         api_service_name, api_version, developerKey=API_KEY
     )
+    
     # Request body
     # https://www.youtube.com/watch?v=3hKsm3fl0D4
     request = youtube.videos().list(
@@ -59,7 +63,8 @@ def get_youtube_video_id(link):
     
 
 def get_all_youtubers_videos_links(youtuber_link) :
-    print('Connecting to Scraping Browser...')  
+    scroll_pause_time = 0.5
+    print('Connecting...')  
     sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome')  
     with Remote(sbr_connection, options=ChromeOptions()) as driver:  
         print('Connected! Navigating...')  
@@ -73,8 +78,27 @@ def get_all_youtubers_videos_links(youtuber_link) :
             )
         except TimeoutException:
             print("could not find video title href link")
-            
-        links = driver.find_elements(By.ID, 'video-title-link')
+        current_links_len = 0
+        current_page_loc = 0
+        while True:
+            driver.execute_script(f"window.scrollBy({current_page_loc}, {current_page_loc+1500})")
+            current_page_loc += 1500
+            # print(f"{current_page_loc=}") 
+            driver.implicitly_wait(10)
+            links = driver.find_elements(By.ID, 'video-title-link')
+            links_len = len(links)
+            print(f"{links_len=}")
+            if current_links_len == links_len:
+                print("Found all videos")
+                break
+            current_links_len = links_len
+            last_link = links[-1]
+            details = last_link.get_attribute('aria-label')            
+            if ("9 months" in details) or ("year" in details):
+                print("Found for a particular period")
+                break
+
+        # links = driver.find_elements(By.ID, 'video-title-link')
         links = [link.get_attribute('href') for link in links]
         return links   
         # store the links object in a pickle to prevent retrieving the data continuously
@@ -95,6 +119,7 @@ def load_data(filename, file_path=''):
     
     
 def remove_names_extracted(txt_file_path, name_file_path):
+    # 
     files_to_remove = []
     for file in os.listdir(name_file_path):
         if file.endswith(".csv"):
@@ -137,6 +162,27 @@ def youtube_video_details_csv(youtuber_link, channel_name=''):
             writer.writerow(details)
 
 
+def get_youtuber_channel_details(youtuber_link):
+    print('Connecting...')  
+    sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome')  
+    with Remote(sbr_connection, options=ChromeOptions()) as driver:  
+        print('Connected! Navigating...')  
+        driver.get(youtuber_link)
+        youtube_details_class = "yt-content-metadata-view-model-wiz__metadata-row.yt-content-metadata-view-model-wiz__metadata-row--metadata-row-inline"
+        try:
+            WebDriverWait(
+                driver, 
+                30  # seconds
+                        ).until(
+                EC.presence_of_element_located((By.CLASS_NAME, youtube_details_class))
+            )
+        except TimeoutException:
+            print("could not find youtube_details class")
+        classes = driver.find_elements(By.CLASS_NAME, youtube_details_class)
+        classes = [class_.text for class_ in classes]  
+        return classes 
+
+
 def main()->None:
     # with open('top_20_nigerian_food_content_creators.txt', 'r') as file:
     #     for line in file.readlines():
@@ -145,7 +191,9 @@ def main()->None:
     # youtube_video_details_csv('https://www.youtube.com/@wonderfulyakubu3599/videos')    
     # print(get_youtube_video_details('xvivHwoUcAc'))
     # remove_names_extracted("top_20_nigerian_food_content_creators.txt", "datasets/")
-    get_all_youtubers_videos_links('https://www.youtube.com/@wonderfulyakubu3599/videos')
+    # links = get_all_youtubers_videos_links('https://www.youtube.com/channel/UCgiZJgpmzcbCW30ywLHVPkQ/videos')
+    # print(len(links))
+    get_youtuber_channel_details('https://www.youtube.com/@wonderfulyakubu3599/videos')
     
         
 
