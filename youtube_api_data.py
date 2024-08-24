@@ -1,5 +1,4 @@
-from types import new_class
-import googleapiclient.discovery
+import googleapiclient.discovery # type: ignore
 from selenium.webdriver import Remote, ChromeOptions  
 from selenium.webdriver.chromium.remote_connection import ChromiumRemoteConnection  
 from selenium.common.exceptions import TimeoutException
@@ -10,10 +9,11 @@ from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime, timezone
 import pandas as pd
 import csv
-import dill as pickle
+import dill as pickle # type: ignore
 import os
 from dotenv import load_dotenv
 from datetime import datetime
+from typing import List, Union
 
 
 load_dotenv()
@@ -25,7 +25,8 @@ SBR_WEBDRIVER = os.getenv('SBR_WEBDRIVER')
 
 
 
-def get_youtube_video_details(video_id: str) -> list[str|datetime|int]:
+def get_youtube_video_details(video_id: str) -> List[Union[str,datetime,int]]:
+    
     api_service_name = "youtube"
     api_version = "v3"
     youtube = googleapiclient.discovery.build(
@@ -39,7 +40,7 @@ def get_youtube_video_details(video_id: str) -> list[str|datetime|int]:
         id= video_id
     )
     response = request.execute()
-    print(response)
+    # print(response)
     video_title = response.get('items')[0].get('snippet').get('localized').get('title')
     video_duration = response.get('items')[0].get('contentDetails').get('duration')
     date_released = response.get('items')[0].get('snippet').get('publishedAt')
@@ -62,9 +63,9 @@ def get_youtube_video_id(link: str) -> str:
     return link_parts[-1]
     
 
-def get_all_youtubers_videos_links(youtuber_link: str) -> list[str]:
+def get_all_youtubers_videos_links(youtuber_link: str) -> List[str]:
     print('Connecting...')  
-    sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome')  
+    sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome') # type: ignore 
     with Remote(sbr_connection, options=ChromeOptions()) as driver:  
         print('Connected! Navigating...')  
         driver.get(youtuber_link)
@@ -80,8 +81,8 @@ def get_all_youtubers_videos_links(youtuber_link: str) -> list[str]:
         current_links_len = 0
         current_page_loc = 0
         while True:
-            driver.execute_script(f"window.scrollBy({current_page_loc}, {current_page_loc+1500})")
-            current_page_loc += 1500
+            driver.execute_script(f"window.scrollBy({current_page_loc}, {current_page_loc+1000})")
+            current_page_loc += 1900
             # print(f"{current_page_loc=}") 
             driver.implicitly_wait(10)
             links = driver.find_elements(By.ID, 'video-title-link')
@@ -96,21 +97,20 @@ def get_all_youtubers_videos_links(youtuber_link: str) -> list[str]:
             if ("9 months" in details) or ("year" in details):
                 print("Found for a particular period")
                 break
-
         # links = driver.find_elements(By.ID, 'video-title-link')
         links = [link.get_attribute('href') for link in links]
         return links   
         # store the links object in a pickle to prevent retrieving the data continuously
 
 
-def save_data(data :list[str], filename :str, file_path: str = '' ) -> None:
+def save_data(data :List[str], filename :str, file_path: str = '' ) -> None:
     if not file_path.endswith('/'):
         file_path = file_path + '/'
     with open(f'{file_path}{filename}', 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def load_data(filename: str, file_path: str ='') -> list[str]:
+def load_data(filename: str, file_path: str ='') -> List[str]:
     if not file_path.endswith('/'):
         file_path = file_path + '/'
     with open(f'{file_path}{filename}', 'rb') as handle:
@@ -135,23 +135,24 @@ def remove_names_extracted(txt_file_path: str, name_file_path: str) -> None:
 def youtube_video_details_csv(youtuber_link: str, channel_name: str ='') -> None:
     if not channel_name:
         link_parts = youtuber_link.split('/')
-        channel_name = [link_part for link_part in link_parts if link_part.startswith('@')]
-        channel_name = channel_name[0].replace('@', '')
+        channel_name = [link_part for link_part in link_parts if link_part.startswith('@')][0]
+        channel_name = channel_name.replace('@', '')
     dir = f'scrapped_data_pickle/'
     filename = f'{channel_name}.pickle'
 
-    with open(f'datasets/{channel_name}.csv', 'w+', newline='', encoding='utf-8') as file:
-        
+    with open(f'datasets/{channel_name}.csv', 'a', newline='', encoding='utf-8') as file:
         if os.path.exists(dir+filename): 
             print(dir+filename)
             video_links = load_data(filename, dir)
         else:
             video_links = get_all_youtubers_videos_links(youtuber_link)
-            print('video are collected using selenium.')
+            print('videos are collected using selenium.')
             save_data(video_links, filename, dir)
-                
+
         writer = csv.writer(file)
-        writer.writerow(['video_title', 'video_duration', 'date_released_utc', 
+        csv_file = os.path.isfile(f'datasets/{channel_name}.csv')
+        if not csv_file:  
+            writer.writerow(['video_title', 'video_duration', 'date_released_utc', 
                              'view_count', 'like_count', 'comment_count', 'date_collected_utc'])
         for video_link in video_links:
             id = get_youtube_video_id(video_link)
@@ -161,9 +162,9 @@ def youtube_video_details_csv(youtuber_link: str, channel_name: str ='') -> None
             writer.writerow(details)
 
 
-def get_youtuber_channel_details(youtuber_link: str) -> list[str]:
+def get_youtuber_channel_details(youtuber_link: str) -> List[str]:
     print('Connecting...')  
-    sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome')  
+    sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome')  # type: ignore
     with Remote(sbr_connection, options=ChromeOptions()) as driver:  
         print('Connected! Navigating...')  
         driver.get(youtuber_link)
@@ -180,21 +181,35 @@ def get_youtuber_channel_details(youtuber_link: str) -> list[str]:
         classes = driver.find_elements(By.CLASS_NAME, youtube_details_class)
         classes = [class_.text for class_ in classes]  
         return classes 
+    
 
+def save_youtuber_channel_details(youtuber_link: str, file_path: str) -> None:
+    details = get_youtuber_channel_details(youtuber_link)
+    print(f'{details=}')
+    channel_name = details[0]
+    subscriber_count, _ , videos_count = details[1].split('\n')
+    dir = os.path.join(file_path, f'youtuber_channel_details.csv')        
+    # Make a condition that would check if the file exists before overwriting the file
+    csv_file = os.path.isfile(dir)
+    with open(dir, 'a', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        if not csv_file:
+            writer.writerow(['channel_name', 'subscriber_count', 'videos_count'])
+            csv_file = False
+        writer.writerow([channel_name, subscriber_count, videos_count])
+            
 
 def main()->None:
+    with open('top_20_nigerian_food_content_creators.txt', 'r') as file:
+        for line in file.readlines():
+            channel_name, channel_link = line.split(',')
+            youtube_video_details_csv(channel_link, channel_name)
     # with open('top_20_nigerian_food_content_creators.txt', 'r') as file:
     #     for line in file.readlines():
-    #         channel_name, channel_link = line.split(',')
-    #         youtube_video_details_csv(channel_link, channel_name)
-    # youtube_video_details_csv('https://www.youtube.com/@wonderfulyakubu3599/videos')    
-    # print(get_youtube_video_details('xvivHwoUcAc'))
-    # remove_names_extracted("top_20_nigerian_food_content_creators.txt", "datasets/")
-    # links = get_all_youtubers_videos_links('https://www.youtube.com/channel/UCgiZJgpmzcbCW30ywLHVPkQ/videos')
-    # print(len(links))
-    get_youtuber_channel_details('https://www.youtube.com/@wonderfulyakubu3599/videos')
-    
-        
+    #         _, channel_link = line.split(',')
+    #         print(f'{channel_link=}')
+    #         save_youtuber_channel_details(channel_link, 'datasets')
 
 if __name__ == '__main__':
     main()
+    # Cosy Foodie, Diary of a Kitchen lover, foodies and spice, sisiyemmie, zeelicious foods

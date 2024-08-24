@@ -1,6 +1,4 @@
-import numpy as np
 import pandas as pd
-from datetime import datetime
 from os import listdir
 from os.path import isfile, join
 
@@ -18,7 +16,7 @@ def extract_data_scraping():
     # print(df.info())
     pass
 
-def get_digits(string):
+def get_digits(string: str) -> str:
     char_list = [char for char in string if char.isdigit()]
     return ''.join(char_list)
 
