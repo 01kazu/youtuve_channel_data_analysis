@@ -24,15 +24,25 @@ AUTH = os.getenv('AUTH')
 SBR_WEBDRIVER = os.getenv('SBR_WEBDRIVER')
 
 
-
 def get_youtube_video_details(video_id: str) -> List[Union[str,datetime,int]]:
-    
+    """
+    Returns details about youtube video
+
+    Parameters
+    ----------
+    video_id : str
+        Youtube video id
+
+    Returns
+    -------
+    list
+        a list of video details        
+    """
     api_service_name = "youtube"
     api_version = "v3"
     youtube = googleapiclient.discovery.build(
         api_service_name, api_version, developerKey=API_KEY
     )
-    
     # Request body
     # https://www.youtube.com/watch?v=3hKsm3fl0D4
     request = youtube.videos().list(
@@ -58,9 +68,10 @@ def get_youtube_video_details(video_id: str) -> List[Union[str,datetime,int]]:
     return [video_title, video_duration, date_released, view_count, like_count, comment_count]
 
 
-def get_youtube_video_id(link: str) -> str:
-    link_parts = link.split('=')
-    return link_parts[-1]
+def get_youtube_video_id(video_link: str) -> str:
+    link_parts = video_link.split('=')
+    video_id = link_parts[-1]
+    return video_id 
     
 
 def get_all_youtubers_videos_links(youtuber_link: str) -> List[str]:
@@ -104,6 +115,9 @@ def get_all_youtubers_videos_links(youtuber_link: str) -> List[str]:
 
 
 def save_data(data :List[str], filename :str, file_path: str = '' ) -> None:
+    """
+    Saves video links in pickle format
+    """
     if not file_path.endswith('/'):
         file_path = file_path + '/'
     with open(f'{file_path}{filename}', 'wb') as handle:
@@ -111,6 +125,9 @@ def save_data(data :List[str], filename :str, file_path: str = '' ) -> None:
 
 
 def load_data(filename: str, file_path: str ='') -> List[str]:
+    """
+    Loads video links to list
+    """
     if not file_path.endswith('/'):
         file_path = file_path + '/'
     with open(f'{file_path}{filename}', 'rb') as handle:
@@ -118,7 +135,16 @@ def load_data(filename: str, file_path: str ='') -> List[str]:
     
     
 def remove_names_extracted(txt_file_path: str, name_file_path: str) -> None:
-    # 
+    """
+    Removes names from a text file 
+
+    Parameters
+    ----------
+    txt_file_path : str
+        file where names are to be deleted
+    name_file_path : str
+        file containing the names
+    """
     files_to_remove = []
     for file in os.listdir(name_file_path):
         if file.endswith(".csv"):
@@ -133,6 +159,9 @@ def remove_names_extracted(txt_file_path: str, name_file_path: str) -> None:
 
 
 def youtube_video_details_csv(youtuber_link: str, channel_name: str ='') -> None:
+    """
+
+    """
     if not channel_name:
         link_parts = youtuber_link.split('/')
         channel_name = [link_part for link_part in link_parts if link_part.startswith('@')][0]
@@ -142,7 +171,6 @@ def youtube_video_details_csv(youtuber_link: str, channel_name: str ='') -> None
 
     with open(f'datasets/{channel_name}.csv', 'a', newline='', encoding='utf-8') as file:
         if os.path.exists(dir+filename): 
-            print(dir+filename)
             video_links = load_data(filename, dir)
         else:
             video_links = get_all_youtubers_videos_links(youtuber_link)
@@ -178,14 +206,15 @@ def get_youtuber_channel_details(youtuber_link: str) -> List[str]:
             )
         except TimeoutException:
             print("could not find youtube_details class")
-        classes = driver.find_elements(By.CLASS_NAME, youtube_details_class)
-        classes = [class_.text for class_ in classes]  
-        return classes 
+        div_classes = driver.find_elements(By.CLASS_NAME, youtube_details_class)
+        div_classes = [class_.text for class_ in div_classes]  
+        return div_classes 
     
 
-def save_youtuber_channel_details(youtuber_link: str, file_path: str) -> None:
-    details = get_youtuber_channel_details(youtuber_link)
-    print(f'{details=}')
+def save_youtuber_channel_details(youtuber_link: str, file_path: str, 
+                                  details: List[str]= []) -> None:
+    if not details:
+        details = get_youtuber_channel_details(youtuber_link)
     channel_name = details[0]
     subscriber_count, _ , videos_count = details[1].split('\n')
     dir = os.path.join(file_path, f'youtuber_channel_details.csv')        
@@ -197,19 +226,19 @@ def save_youtuber_channel_details(youtuber_link: str, file_path: str) -> None:
             writer.writerow(['channel_name', 'subscriber_count', 'videos_count'])
             csv_file = False
         writer.writerow([channel_name, subscriber_count, videos_count])
-            
+
+
 
 def main()->None:
     with open('top_20_nigerian_food_content_creators.txt', 'r') as file:
         for line in file.readlines():
-            channel_name, channel_link = line.split(',')
+            _ , channel_link = line.split(',')
+            details = get_youtuber_channel_details(channel_link)
+            channel_name = details[0]
+            
             youtube_video_details_csv(channel_link, channel_name)
-    # with open('top_20_nigerian_food_content_creators.txt', 'r') as file:
-    #     for line in file.readlines():
-    #         _, channel_link = line.split(',')
-    #         print(f'{channel_link=}')
-    #         save_youtuber_channel_details(channel_link, 'datasets')
+            # save channel name, total subscribers and total videos uploaded
+            # save_youtuber_channel_details(channel_link, 'datasets', details)
 
 if __name__ == '__main__':
     main()
-    # Cosy Foodie, Diary of a Kitchen lover, foodies and spice, sisiyemmie, zeelicious foods

@@ -1,31 +1,42 @@
+from unittest import result
 import pandas as pd
 from os import listdir
 from os.path import isfile, join
-from typing import Dict
+from typing import Dict, List
 
 
 def get_digits(string: str) -> str:
     char_list = [char for char in string if char.isdigit()]
-    return ''.join(char_list)
+    digits = ''.join(char_list)
+    return digits
 
 
 def get_video_duration(video_duration_str: str) -> Dict[str, str]:
+    """
+    Returns the appropriate hour, minutes, seconds from a string
+
+    Parameters
+    ----------
+    video_duration_str : str
+        Youtube api video duration string
+
+    Returns
+    -------
+    video_duration : dict
+    """
     video_duration = {'H': '0', 'M': '0', 'S': '0'}
     for time_str in ['H', 'M', 'S']:
         if time_str in video_duration_str:
             result = video_duration_str.split(time_str)
-            if len(result) == 2:
-                time, video_duration_str = result
-                time = ''.join([t for t in time if t.isdigit()])
-                video_duration[time_str] = time
-            else:
-                time = result[0]
-                time = ''.join([t for t in time if t.isdigit()])
-                video_duration[time_str] = time
+            time, video_duration_str = result
+            video_duration[time_str]  = get_digits(time)
     return video_duration
 
 
 def data_cleaning_video(filepath: str) -> pd.DataFrame:
+    """
+
+    """
     df = pd.read_csv(filepath, parse_dates=['date_released_utc', 'date_collected_utc'])
     # Extract video duration from string
     df['video_duration_H_M_S'] = df['video_duration'].apply(get_video_duration)
@@ -43,6 +54,8 @@ def data_cleaning_video(filepath: str) -> pd.DataFrame:
 
 def get_num(string: str) -> float:
     # 1.02M subscribers, 1.3k videos
+    """
+    """
     first_substring = string.split()[0]
     if first_substring.isdigit():
         return float(first_substring)
@@ -65,15 +78,43 @@ def data_cleaning_channel_details(filepath: str) -> pd.DataFrame:
              'videos_count': int})
     return df
 
+
+def data_compilation(filepath: str, 
+                     columns: List[str] = [''], 
+                     files_to_exclude: List[str] = ['']) -> pd.DataFrame:
+    result_df = pd.DataFrame(columns=columns)
+    for file in listdir(filepath):
+        file_dir = join(filepath, file) 
+        if isfile(file_dir):
+            if file not in files_to_exclude:
+                df = pd.read_csv(file_dir, parse_dates=['date_released_utc',
+                                                        'date_collected_utc'])
+                channel_name = file.strip('.csv')
+                df['channel_name'] = channel_name
+                result_df = pd.concat([result_df, df])
+    return result_df
+    
+    
+                
 def main()-> None:
-    for file in listdir('datasets'):
-        if isfile(join('datasets', file)):
-            if file == "youtuber_channel_details.csv":
-                df = data_cleaning_channel_details(join('datasets', file))
-                df.to_csv(join('cleaned_datasets', file), index=False)
-                continue
-            df = data_cleaning_video(join('datasets', file))
-            df.to_csv(join('cleaned_datasets', file), index=False )
+    ## Cleaning all 
+    # for file in listdir('datasets'):
+    #     if isfile(join('datasets', file)):
+    #         if file == "youtuber_channel_details.csv":
+    #             df = data_cleaning_channel_details(join('datasets', file))
+    #             df.to_csv(join('cleaned_datasets', file), index=False)
+    #             continue
+    #         df = data_cleaning_video(join('datasets', file))
+    #         df.to_csv(join('cleaned_datasets', file), index=False )
+    # print(get_video_duration('PT1H30M17S'))
+    ## Compiling all the dataframes
+    df = data_compilation('cleaned_datasets', 
+                     ['video_title', 'date_released_utc', 'view_count', 'like_count',
+                      'comment_count', 'date_collected_utc', 'video_duration_H',
+                      'video_duration_M', 'video_duration_S', 'channel_name'],
+                      ['youtuber_channel_details.csv'])
+    df.to_csv('compiled_datasets/compiled_df.csv', index=False)
+
 
 if __name__ == '__main__':
     main()
