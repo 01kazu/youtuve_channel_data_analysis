@@ -1,0 +1,3 @@
+view count - #A3ACB9
+like count - #FC7D0B
+comment count - #1170AA

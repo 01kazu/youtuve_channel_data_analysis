@@ -71,6 +71,7 @@ def get_num(string: str) -> float:
 def data_cleaning_channel_details(filepath: str) -> pd.DataFrame:
     df = pd.read_csv(filepath)
     # New columns
+    df['channel_name'] = df['channel_name'].str.strip('@')
     df['subscriber_count'] = df['subscriber_count'].apply(get_num) 
     df['videos_count'] = df['videos_count'].apply(get_num)
     df = df.astype(
@@ -97,7 +98,7 @@ def data_compilation(filepath: str,
     
                 
 def main()-> None:
-    ## Cleaning all 
+    ## Cleaning all datasets
     # for file in listdir('datasets'):
     #     if isfile(join('datasets', file)):
     #         if file == "youtuber_channel_details.csv":
@@ -107,13 +108,16 @@ def main()-> None:
     #         df = data_cleaning_video(join('datasets', file))
     #         df.to_csv(join('cleaned_datasets', file), index=False )
     # print(get_video_duration('PT1H30M17S'))
+    ## Cleaning Youtuber_channel_details.csv
+    df = data_cleaning_channel_details('datasets/youtuber_channel_details.csv')
+    df.to_csv(join('cleaned_datasets', 'youtuber_channel_details.csv' ), index=False )
     ## Compiling all the dataframes
-    df = data_compilation('cleaned_datasets', 
-                     ['video_title', 'date_released_utc', 'view_count', 'like_count',
-                      'comment_count', 'date_collected_utc', 'video_duration_H',
-                      'video_duration_M', 'video_duration_S', 'channel_name'],
-                      ['youtuber_channel_details.csv'])
-    df.to_csv('compiled_datasets/compiled_df.csv', index=False)
+    # df = data_compilation('cleaned_datasets', 
+    #                  ['video_title', 'date_released_utc', 'view_count', 'like_count',
+    #                   'comment_count', 'date_collected_utc', 'video_duration_H',
+    #                   'video_duration_M', 'video_duration_S', 'channel_name'],
+    #                   ['youtuber_channel_details.csv'])
+    # df.to_csv('compiled_datasets/compiled_df.csv', index=False)
 
 
 if __name__ == '__main__':
