@@ -1,24 +1,14 @@
-from selenium import webdriver
-from selenium.webdriver import Remote, ChromeOptions  
-from selenium.webdriver.chromium.remote_connection import ChromiumRemoteConnection 
+from selenium import webdriver 
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from dotenv import load_dotenv
-import os
-
-
-def get_local_driver():
-    # Get the chromedriver version that corresponds with your google chrome browser version.
-    service = Service(executable_path="chromedriver.exe")
-    driver = webdriver.Chrome(service=service)
-    return driver
 
 
 def get_top_20_nigeria_food_content_creators() -> None:
-    driver = get_local_driver()
+    service = Service(executable_path="chromedriver.exe")
+    driver = webdriver.Chrome(service=service)
     driver.get('https://videos.feedspot.com/nigeria_food_youtube_channels/')
     try:
         WebDriverWait(

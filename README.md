@@ -59,6 +59,9 @@ The data is scraped from youtube using the Selenium, BrightData and Youtube API.
 
 To understand what it should contain, we need to figure out what questions we need the dashboard to answer:
 
-1. What videos are getting views higher than the youtuber's subscriber count?
-2. What are the top 10 videos by view count? 
+1. What videos are getting views higher than the youtuber's subscriber count ?
+2. What are the top 10 videos by view count ? 
+3. What are the top 10 videos by like count ?
+4. What are the top 10 videos by comment count ?
+5. How does video length correlate with views/likes/comment?
 

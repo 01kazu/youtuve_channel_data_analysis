@@ -26,7 +26,7 @@ SBR_WEBDRIVER = os.getenv('SBR_WEBDRIVER')
 
 def get_youtube_video_details(video_id: str) -> List[Union[str,datetime,int]]:
     """
-    Returns details about youtube video
+    Returns details about youtube video from the video's id.
 
     Parameters
     ----------
@@ -69,12 +69,38 @@ def get_youtube_video_details(video_id: str) -> List[Union[str,datetime,int]]:
 
 
 def get_youtube_video_id(video_link: str) -> str:
+    """
+    Returns video id.
+
+    Parameters
+    ----------
+    video_link : str
+        Youtube video link
+
+    Returns
+    -------
+    str
+        Youtube video id. 
+    """
     link_parts = video_link.split('=')
     video_id = link_parts[-1]
     return video_id 
     
 
 def get_all_youtubers_videos_links(youtuber_link: str) -> List[str]:
+    """
+    Returns video links from youtuber's channel.
+
+    Parameters
+    ----------
+    youtuber_link : str
+        Youtuber's channel videos link
+
+    Returns
+    -------
+    list
+        a list of youtube videos from the Youtuber's channel
+    """
     print('Connecting...')  
     sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome') # type: ignore 
     with Remote(sbr_connection, options=ChromeOptions()) as driver:  
@@ -116,7 +142,16 @@ def get_all_youtubers_videos_links(youtuber_link: str) -> List[str]:
 
 def save_data(data :List[str], filename :str, file_path: str = '' ) -> None:
     """
-    Saves video links in pickle format
+    Saves video links in pickle format.
+
+    Parameters
+    ----------
+    data: list[str]
+
+    filename: str
+
+    file_path: str
+
     """
     if not file_path.endswith('/'):
         file_path = file_path + '/'
@@ -160,7 +195,7 @@ def remove_names_extracted(txt_file_path: str, name_file_path: str) -> None:
 
 def youtube_video_details_csv(youtuber_link: str, channel_name: str ='') -> None:
     """
-
+    
     """
     if not channel_name:
         link_parts = youtuber_link.split('/')
