@@ -64,4 +64,29 @@ To understand what it should contain, we need to figure out what questions we ne
 3. What are the top 10 videos by like count ?
 4. What are the top 10 videos by comment count ?
 5. How does video length correlate with views/likes/comment?
+6. Give recommedations on popular videos.
+
+## Dashboad Mockup
+![Dashboard_Mockup](images/dashboard_mockup.png)
+
+This dashboard consists of various visualizations which include:
+1. Line chart
+2. Tables
+3. Scatterplots
+4. Date slicer
+5. Cards
+
+## Tools
+| Tool | Purpose |
+| --- | --- |
+| Python | Extracting, cleaning, testing, and analyzing the data |
+| Mokkup AI | Designing the wireframe/mockup of the dashboard | 
+| Tableau | Visualizing the data via interactive dashboards |
+| GitHub | Hosting the project documentation and version control |
+
+
+
+
+
+
 
