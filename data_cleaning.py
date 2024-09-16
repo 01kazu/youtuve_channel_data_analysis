@@ -174,14 +174,13 @@ def main()-> None:
     # df = data_cleaning_channel_details('datasets/youtuber_channel_details.csv')
     # df.to_csv(join('cleaned_datasets', 'youtuber_channel_details.csv' ), index=False )
     ## Compiling all the dataframes
-    # df = data_compilation('cleaned_datasets', 
-    #                  ['video_title', 'date_released_utc', 'view_count', 'like_count',
-    #                   'comment_count', 'date_collected_utc', 'video_duration_H',
-    #                   'video_duration_M', 'video_duration_S', 'channel_name'],
-    #                   ['youtuber_channel_details.csv'])
-    # df.to_csv('compiled_datasets/compiled_df.csv', index=False)
-    ## Test
-    print(get_num('1.2k'))
+    df = data_compilation('cleaned_datasets', 
+                     ['video_title', 'date_released_utc', 'view_count', 'like_count',
+                      'comment_count', 'date_collected_utc', 'video_duration_H',
+                      'video_duration_M', 'video_duration_S', 'channel_name'],
+                      ['youtuber_channel_details.csv'])
+    df.to_csv('compiled_datasets/compiled_df.csv', index=False)
+
 
 
 if __name__ == '__main__':

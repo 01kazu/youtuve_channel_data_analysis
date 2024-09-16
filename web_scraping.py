@@ -98,8 +98,8 @@ def get_all_youtubers_videos_links(youtuber_link: str) -> List[str]:
 
     Returns
     -------
-    list
-        a list of youtube videos from the Youtuber's channel
+    links : list
+        List of youtube videos from the Youtuber's channel
     """
     print('Connecting...')  
     sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome') # type: ignore 
@@ -140,32 +140,44 @@ def get_all_youtubers_videos_links(youtuber_link: str) -> List[str]:
         # store the links object in a pickle to prevent retrieving the data continuously
 
 
-def save_data(data :List[str], filename :str, file_path: str = '' ) -> None:
+def save_data(data :List[str], filename :str, filepath: str) -> None:
     """
     Saves video links in pickle format.
 
     Parameters
     ----------
-    data: list[str]
-
-    filename: str
-
-    file_path: str
-
+    data : list[str]
+        List containing links to the youtuber's videos
+    filename : str
+        Name of the file to be created
+    filepath : str
+        Directory to the file
     """
-    if not file_path.endswith('/'):
-        file_path = file_path + '/'
-    with open(f'{file_path}{filename}', 'wb') as handle:
+    if not filepath.endswith('/'):
+        filepath = filepath + '/'
+    with open(f'{filepath}{filename}', 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def load_data(filename: str, file_path: str ='') -> List[str]:
+def load_data(filename: str, filepath: str ='') -> List[str]:
     """
-    Loads video links to list
+    Loads data using pickle
+
+    Parameters
+    ----------
+    filename : str
+        Name of pickle file to be loaded
+    filepath : str
+        Directory to the file to be loaded
+
+    Returns
+    -------
+    list
+        List containing links to the youtuber's videos
     """
-    if not file_path.endswith('/'):
-        file_path = file_path + '/'
-    with open(f'{file_path}{filename}', 'rb') as handle:
+    if not filepath.endswith('/'):
+        filepath = filepath + '/'
+    with open(f'{filepath}{filename}', 'rb') as handle:
         return pickle.load(handle)
     
     
@@ -193,9 +205,24 @@ def remove_names_extracted(txt_file_path: str, name_file_path: str) -> None:
                 f.write(line)
 
 
-def youtube_video_details_csv(youtuber_link: str, channel_name: str ='') -> None:
+def youtube_video_details_csv(youtuber_link: str, 
+                              channel_name: str ='',
+                              dirpath: str = 'datasets', 
+                              use_pickled_data: bool = False) -> None:
     """
-    
+    Creates a csv file containing various details of different videos of a Youtuber.
+
+    Parameters
+    ----------
+    youtuber_link : str
+        Link to the youtuber's page containing their all their videos
+    channel_name : str, optional
+        Name of the Youtuber's channel
+    dirpath : str, optional
+        Directory where csv files created would be saved.  
+    use_pickled_data : bool, optional
+        If pickled data exists, you can decide if you'd prefer to use it 
+        or get new data from the youtuber's link
     """
     if not channel_name:
         link_parts = youtuber_link.split('/')
@@ -205,15 +232,15 @@ def youtube_video_details_csv(youtuber_link: str, channel_name: str ='') -> None
     filename = f'{channel_name}.pickle'
 
     with open(f'datasets/{channel_name}.csv', 'a', newline='', encoding='utf-8') as file:
-        if os.path.exists(dir+filename): 
+        if os.path.exists(dir+filename) and use_pickled_data:
             video_links = load_data(filename, dir)
         else:
             video_links = get_all_youtubers_videos_links(youtuber_link)
             print('videos are collected using selenium.')
             save_data(video_links, filename, dir)
-
         writer = csv.writer(file)
-        csv_file = os.path.isfile(f'datasets/{channel_name}.csv')
+        csv_file = os.path.isfile(os.path.join(dirpath, f'{channel_name}.csv'))
+        os.path.join
         if not csv_file:  
             writer.writerow(['video_title', 'video_duration', 'date_released_utc', 
                              'view_count', 'like_count', 'comment_count', 'date_collected_utc'])
@@ -226,6 +253,19 @@ def youtube_video_details_csv(youtuber_link: str, channel_name: str ='') -> None
 
 
 def get_youtuber_channel_details(youtuber_link: str) -> List[str]:
+    """
+    Returns a div containing the channel name, subscriber count and videos count.
+
+    Parameters
+    ----------
+    youtuber_link : str
+        Link containing the youtuber's channel name, subscriber count and videos count
+
+    Returns
+    -------
+    div_classes : List[str]
+        List of divs containing the channel name, subscriber count and videos count
+    """
     print('Connecting...')  
     sbr_connection = ChromiumRemoteConnection(SBR_WEBDRIVER, 'goog', 'chrome')  # type: ignore
     with Remote(sbr_connection, options=ChromeOptions()) as driver:  
@@ -246,13 +286,27 @@ def get_youtuber_channel_details(youtuber_link: str) -> List[str]:
         return div_classes 
     
 
-def save_youtuber_channel_details(youtuber_link: str, file_path: str, 
+def save_youtuber_channel_details(youtuber_link: str, 
+                                  filepath: str, 
                                   details: List[str]= []) -> None:
+    """
+    Saves Youtube channel details such as channel_name, subscriber count 
+    and videos_count to a csv file.
+
+    Parameters
+    ----------
+    youtuber_link : str
+        Link containing the youtuber's channel name, subscriber count and videos count
+    filepath : str
+        Path where csv file created would be aved
+    details : List[str]
+        List of divs containing the channel name, subscriber count and videos count
+    """
     if not details:
         details = get_youtuber_channel_details(youtuber_link)
     channel_name = details[0]
     subscriber_count, _ , videos_count = details[1].split('\n')
-    dir = os.path.join(file_path, f'youtuber_channel_details.csv')        
+    dir = os.path.join(filepath, f'youtuber_channel_details.csv')        
     # Make a condition that would check if the file exists before overwriting the file
     csv_file = os.path.isfile(dir)
     with open(dir, 'a', newline='', encoding='utf-8') as file:
@@ -271,7 +325,7 @@ def main()->None:
             details = get_youtuber_channel_details(channel_link)
             channel_name = details[0]
             
-            youtube_video_details_csv(channel_link, channel_name)
+            youtube_video_details_csv(channel_link, channel_name, 'datasets', False)
             # save channel name, total subscribers and total videos uploaded
             # save_youtuber_channel_details(channel_link, 'datasets', details)
 
